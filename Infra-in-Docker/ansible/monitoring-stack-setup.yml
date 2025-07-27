@@ -1,4 +1,4 @@
-- name: Setup Monitoring Stack with Prometheus, Grafana, Loki, and Microservice
+- name: Setup Monitoring Stack with Prometheus, Grafana and Microservice
   hosts: local
   vars:
   - network_name: microservice_monitoring_stack
