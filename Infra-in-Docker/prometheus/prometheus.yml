@@ -6,7 +6,7 @@ global:
 scrape_configs:
   - job_name: 'flask-microservice'
     static_configs:
-      - targets: ['flaskapp-metrics:5000'] # proper name of the container
+      - targets: ['flask-metrics:5000'] # proper name of the container
 
   - job_name: 'node-exporter'
     static_configs:
