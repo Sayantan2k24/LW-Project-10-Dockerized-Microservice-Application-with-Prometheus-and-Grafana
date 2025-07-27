@@ -4,6 +4,15 @@
     - network_name: microservice_monitoring_stack
 
   tasks:
+    - name: Check if Docker network already exists
+      shell: docker network ls --format '{{ "{{.Name}}" }}' | grep -w {{ network_name }}
+      register: network_exists
+      ignore_errors: yes
+
+    - name: Create Docker network
+      shell: docker network create {{ network_name }} --driver=bridge
+      when: network_exists.rc != 0
+
 
     - name: Create Docker network 
       shell: >
