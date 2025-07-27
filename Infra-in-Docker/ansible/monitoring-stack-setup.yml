@@ -1,0 +1,48 @@
+- name: Setup Monitoring Stack with Prometheus, Grafana, Loki, and Microservice
+  hosts: local
+  vars:
+  - network_name: microservice_monitoring_stack
+  tasks:
+
+    - name: Create Docker network 
+      shell: >
+        docker network create {{ network_name }} --driver=bridge
+      ignore_errors: yes
+
+    - name: Build Prometheus image
+      shell: >
+        docker build -t custom-prometheus-server:v1 {{ playbook_dir }}/../prometheus
+
+    - name: Build Grafana image
+      shell: docker build -t custom-grafana-server:v1 ../grafana
+
+    - name: Build Microservice app image
+      shell: >
+        docker build -t flask-metrics:v1 {{ playbook_dir }}/../microservice
+
+    - name: Run Prometheus container
+      shell: >
+        docker run -d --name prometheus-server
+        --network {{ network_name }}
+        -p 9090:9090
+        -v {{ playbook_dir }}/../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+        custom-prometheus-server:v1
+
+    - name: Create Grafana volume
+      shell: docker volume create grafana_data
+      ignore_errors: yes
+
+    - name: Run Grafana container
+      shell: >
+        docker run -d --name grafana-server
+        --network {{ network_name }}
+        -p 3000:3000
+        -v grafana_data:/var/lib/grafana
+        custom-grafana-server:v1
+
+    - name: Run Microservice container
+      shell: >
+        docker run -d --name flask-metrics
+        --network {{ network_name }}
+        -p 5000:5000
+        flask-metrics:v1 

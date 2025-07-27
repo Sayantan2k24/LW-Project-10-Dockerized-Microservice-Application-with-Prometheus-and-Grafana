@@ -1,0 +1,18 @@
+- name: Setup Traffic Simulator
+  hosts: local
+  vars:
+  - network_name: microservice_monitoring_stack
+  tasks:
+
+    - name: Create Docker network 
+      shell: >
+        docker network create {{ network_name }} --driver=bridge
+      ignore_errors: yes
+
+    - name: Bild Traffic Simulator image
+      shell:  
+        docker build -t traffic-simulator:v1 {{ playbook_dir }}/../traffic-simulator
+
+    - name: Run the Traffic Simulator
+      shell: >
+        docker run -d --name traffic-simulator --network {{ network_name }} traffic-simulator:v1

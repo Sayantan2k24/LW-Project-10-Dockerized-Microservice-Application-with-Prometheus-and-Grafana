@@ -1,0 +1,2 @@
+ansible-playbook  monitoring-stack-setup.yml -e "ansible_python_interpreter=/usr/bin/python3"
+ansible-playbook traffic-simlator-setup.yml -e "ansible_python_interpreter=/usr/bin/python3"
