@@ -1,7 +1,8 @@
 - name: Setup Monitoring Stack with Prometheus, Grafana and Microservice
   hosts: localhost
   vars:
-  - network_name: microservice_monitoring_stack
+    - network_name: microservice_monitoring_stack
+
   tasks:
 
     - name: Create Docker network 
@@ -14,11 +15,16 @@
         docker build -t custom-prometheus-server:v1 {{ playbook_dir }}/../prometheus
 
     - name: Build Grafana image
-      shell: docker build -t custom-grafana-server:v1 ../grafana
+      shell: >
+        docker build -t custom-grafana-server:v1 {{ playbook_dir }}/../grafana
 
     - name: Build Microservice app image
       shell: >
         docker build -t flask-metrics:v1 {{ playbook_dir }}/../microservice
+
+    - name: Build Node Exporter image
+      shell: >
+        docker build -t custom-node-exporter:v1 {{ playbook_dir }}/../node-exporter
 
     - name: Run Prometheus container
       shell: >
@@ -45,4 +51,16 @@
         docker run -d --name flask-metrics
         --network {{ network_name }}
         -p 5000:5000
-        flask-metrics:v1 
+        flask-metrics:v1
+
+    - name: Run Node Exporter container (with host namespace access)
+      shell: >
+        docker run -d --name node-exporter
+        --network {{ network_name }}
+        --pid=host
+        --cap-add=SYS_TIME
+        -p 9100:9100
+        -v /proc:/host/proc:ro
+        -v /sys:/host/sys:ro
+        -v /:/rootfs:ro
+        custom-node-exporter:v1
