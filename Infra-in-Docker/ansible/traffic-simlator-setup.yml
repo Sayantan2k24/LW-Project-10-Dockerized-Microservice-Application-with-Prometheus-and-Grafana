@@ -19,7 +19,7 @@
     #     docker network create {{ network_name }} --driver=bridge
     #   ignore_errors: yes
 
-    - name: Bild Traffic Simulator image
+    - name: Build Traffic Simulator image
       shell:  
         docker build -t traffic-simulator:v1 {{ playbook_dir }}/../traffic-simulator
 
