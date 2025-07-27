@@ -1,7 +1,7 @@
 - name: Setup Monitoring Stack with Prometheus, Grafana and Microservice
   hosts: localhost
   vars:
-    - network_name: microservice_monitoring_stack
+    network_name: microservice_monitoring_stack
 
   tasks:
     - name: Check if Docker network already exists
@@ -13,27 +13,22 @@
       shell: docker network create {{ network_name }} --driver=bridge
       when: network_exists.rc != 0
 
-
-    # - name: Create Docker network 
-    #   shell: >
-    #     docker network create {{ network_name }} --driver=bridge
-    #   ignore_errors: yes
-
     - name: Build Prometheus image
-      shell: >
-        docker build -t custom-prometheus-server:v1 {{ playbook_dir }}/../prometheus
+      shell: docker build -t custom-prometheus-server:v1 {{ playbook_dir }}/../prometheus
 
     - name: Build Grafana image
-      shell: >
-        docker build -t custom-grafana-server:v1 {{ playbook_dir }}/../grafana
+      shell: docker build -t custom-grafana-server:v1 {{ playbook_dir }}/../grafana
 
     - name: Build Microservice app image
-      shell: >
-        docker build -t flask-metrics:v1 {{ playbook_dir }}/../microservice
+      shell: docker build -t flask-metrics:v1 {{ playbook_dir }}/../microservice
 
     - name: Build Node Exporter image
-      shell: >
-        docker build -t custom-node-exporter:v1 {{ playbook_dir }}/../node-exporter
+      shell: docker build -t custom-node-exporter:v1 {{ playbook_dir }}/../node-exporter
+
+    - name: Check if Prometheus container exists
+      shell: docker ps -a --format '{{ "{{.Names}}" }}' | grep -w prometheus-server
+      register: prometheus_exists
+      ignore_errors: yes
 
     - name: Run Prometheus container
       shell: >
@@ -42,9 +37,15 @@
         -p 9090:9090
         -v {{ playbook_dir }}/../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
         custom-prometheus-server:v1
+      when: prometheus_exists.rc != 0
 
     - name: Create Grafana volume
       shell: docker volume create grafana_data
+      ignore_errors: yes
+
+    - name: Check if Grafana container exists
+      shell: docker ps -a --format '{{ "{{.Names}}" }}' | grep -w grafana-server
+      register: grafana_exists
       ignore_errors: yes
 
     - name: Run Grafana container
@@ -54,6 +55,12 @@
         -p 3000:3000
         -v grafana_data:/var/lib/grafana
         custom-grafana-server:v1
+      when: grafana_exists.rc != 0
+
+    - name: Check if Microservice container exists
+      shell: docker ps -a --format '{{ "{{.Names}}" }}' | grep -w flask-metrics
+      register: microservice_exists
+      ignore_errors: yes
 
     - name: Run Microservice container
       shell: >
@@ -61,6 +68,12 @@
         --network {{ network_name }}
         -p 5000:5000
         flask-metrics:v1
+      when: microservice_exists.rc != 0
+
+    - name: Check if Node Exporter container exists
+      shell: docker ps -a --format '{{ "{{.Names}}" }}' | grep -w node-exporter
+      register: node_exporter_exists
+      ignore_errors: yes
 
     - name: Run Node Exporter container (with host namespace access)
       shell: >
@@ -73,3 +86,4 @@
         -v /sys:/host/sys:ro
         -v /:/rootfs:ro
         custom-node-exporter:v1
+      when: node_exporter_exists.rc != 0
