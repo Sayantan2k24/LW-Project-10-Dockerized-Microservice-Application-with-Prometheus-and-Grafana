@@ -1,5 +1,5 @@
 - name: Setup Monitoring Stack with Prometheus, Grafana and Microservice
-  hosts: local
+  hosts: localhost
   vars:
   - network_name: microservice_monitoring_stack
   tasks:

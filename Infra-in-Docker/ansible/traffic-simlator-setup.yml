@@ -1,7 +1,7 @@
 # traffic-simulator-setup.yml
 
 - name: Setup Traffic Simulator
-  hosts: local
+  hosts: localhost
   vars:
   - network_name: microservice_monitoring_stack
   tasks:
