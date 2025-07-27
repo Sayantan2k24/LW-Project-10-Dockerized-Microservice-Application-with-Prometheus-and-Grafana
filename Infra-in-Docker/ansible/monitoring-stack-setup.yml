@@ -14,10 +14,10 @@
       when: network_exists.rc != 0
 
 
-    - name: Create Docker network 
-      shell: >
-        docker network create {{ network_name }} --driver=bridge
-      ignore_errors: yes
+    # - name: Create Docker network 
+    #   shell: >
+    #     docker network create {{ network_name }} --driver=bridge
+    #   ignore_errors: yes
 
     - name: Build Prometheus image
       shell: >
